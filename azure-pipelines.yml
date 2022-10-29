@@ -36,7 +36,7 @@ steps:
     projectName: 'spring-boot-kubernetes'
     scanPath: '$(Build.SourcesDirectory)/target'
     format: 'HTML'
-    failOnCVSS: '10'
+    failOnCVSS: '7'
 - task: DockerInstaller@0
   inputs:
     dockerVersion: '17.09.0-ce'
@@ -55,7 +55,7 @@ steps:
   inputs:
     version: 'latest'
     image: 'nearavenac/spring-boot-kubernetes'
-    exitCode: '0'
+    exitCode: '1'
 - task: Docker@2
   inputs:
     containerRegistry: 'Docker'
