@@ -38,5 +38,8 @@ public class Controller {
         return userService.getUser(containName);
     }
 
-
+    @PostMapping("/owners/new")
+	public String processCreationForm(@Valid Owner owner) {
+		return "test";
+	}
 }
