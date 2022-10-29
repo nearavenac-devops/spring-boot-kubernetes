@@ -31,3 +31,8 @@ steps:
   inputs:
     SonarCloud: 'sonarcloud'
     organization: 'nearavenac-devops'
+- task: dependency-check-build-task@6
+  inputs:
+    projectName: 'spring-boot-kubernetes'
+    scanPath: '$(Build.SourcesDirectory)/build/libs'
+    format: 'HTML'
