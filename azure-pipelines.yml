@@ -1,29 +1,12 @@
-# Docker
-# Build a Docker image
-# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
-
-trigger:
-- master
-
-resources:
-- repo: self
-
-variables:
-  tag: '$(Build.BuildId)'
-
-stages:
-- stage: Build
-  displayName: Build image
-  jobs:
-  - job: Build
-    displayName: Build
-    pool:
-      vmImage: ubuntu-latest
-    steps:
-    - task: Docker@2
-      displayName: Build an image
-      inputs:
-        command: build
-        dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
-        tags: |
-          $(tag)
+steps:
+# Starter pipeline
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'sonarcloud'
+    organization: 'nearavenac-devops'
+    projectKey: 'nearavenac-devops_spring-boot-kubernetes'
+    projectName: 'spring-boot-kubernetes'
+- task: sonarcloud-buildbreaker@2
+  inputs:
+    SonarCloud: 'sonarcloud'
+    organization: 'nearavenac-devops'
