@@ -37,9 +37,4 @@ public class Controller {
     public List<User> getUsersByContainName(@PathVariable("contain_name") String containName){
         return userService.getUser(containName);
     }
-
-    @PostMapping("/owners/new")
-	public String processCreationForm(@Valid Owner owner) {
-		return "test";
-	}
 }
