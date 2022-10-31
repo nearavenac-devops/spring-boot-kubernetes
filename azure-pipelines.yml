@@ -63,7 +63,7 @@ stages:
           failOnCVSS: '7'
         displayName: 'Dependency Check'
 
-- stage: Container Security 
+- stage: ContainerSecurity 
   jobs:
   - job: ContainerSecurity
     displayName: 'Container Security'
