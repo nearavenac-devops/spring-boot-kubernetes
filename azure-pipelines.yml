@@ -41,9 +41,6 @@ stages:
           sonarQubeRunAnalysis: true
           sqMavenPluginVersionChoice: 'latest'
         displayName: 'Analyze current Branch'
-  - job: breaker
-    displayName: 'Breaker'
-    steps:
       - task: sonarcloud-buildbreaker@2
         inputs:
           SonarCloud: 'sonarcloud'
@@ -60,7 +57,7 @@ stages:
           projectName: 'spring-boot-kubernetes'
           scanPath: '$(Build.SourcesDirectory)/target'
           format: 'HTML'
-          failOnCVSS: '7'
+          failOnCVSS: '10'
         displayName: 'Dependency Check'
 
 - stage: ContainerSecurity 
@@ -89,7 +86,7 @@ stages:
         inputs:
           version: 'latest'
           image: 'nearavenac/spring-boot-kubernetes'
-          exitCode: '1'
+          exitCode: '0'
         displayName: 'Trivy Analisys'
       - task: Docker@2
         inputs:
