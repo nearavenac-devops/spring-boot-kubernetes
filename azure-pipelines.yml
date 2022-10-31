@@ -1,64 +1,100 @@
-steps:
-# Starter pipeline
-- task: Maven@4
-  inputs:
-    mavenPomFile: 'pom.xml'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    javaHomeOption: 'JDKVersion'
-    mavenVersionOption: 'Default'
-    mavenAuthenticateFeed: false
-    effectivePomSkip: false
-    sonarQubeRunAnalysis: false
-- task: SonarCloudPrepare@1
-  inputs:
-    SonarCloud: 'sonarcloud'
-    organization: 'nearavenac-devops'
-    projectKey: 'nearavenac-devops_spring-boot-kubernetes'
-    projectName: 'spring-boot-kubernetes'
-- task: Maven@4
-  inputs:
-    mavenPomFile: 'pom.xml'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    javaHomeOption: 'JDKVersion'
-    mavenVersionOption: 'Default'
-    mavenAuthenticateFeed: false
-    effectivePomSkip: false
-    sonarQubeRunAnalysis: true
-    sqMavenPluginVersionChoice: 'latest'
-- task: sonarcloud-buildbreaker@2
-  inputs:
-    SonarCloud: 'sonarcloud'
-    organization: 'nearavenac-devops'
-- task: dependency-check-build-task@6
-  inputs:
-    projectName: 'spring-boot-kubernetes'
-    scanPath: '$(Build.SourcesDirectory)/target'
-    format: 'HTML'
-    failOnCVSS: '7'
-- task: DockerInstaller@0
-  inputs:
-    dockerVersion: '17.09.0-ce'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker'
-    command: 'login'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker'
-    repository: 'nearavenac/spring-boot-kubernetes'
-    command: 'build'
-    Dockerfile: '**/Dockerfile'
-    tags: 'latest'
-- task: trivy@1
-  inputs:
-    version: 'latest'
-    image: 'nearavenac/spring-boot-kubernetes'
-    exitCode: '1'
-- task: Docker@2
-  inputs:
-    containerRegistry: 'Docker'
-    repository: 'nearavenac/spring-boot-kubernetes'
-    command: 'push'
-    tags: 'latest'
+pool:
+  vmImage: ubuntu-latest
+stages:
+- stage: Build 
+  jobs:
+  - job: build
+    displayName: 'Build'
+    steps:
+    - task: Maven@4
+      inputs:
+        mavenPomFile: 'pom.xml'
+        publishJUnitResults: true
+        testResultsFiles: '**/surefire-reports/TEST-*.xml'
+        javaHomeOption: 'JDKVersion'
+        mavenVersionOption: 'Default'
+        mavenAuthenticateFeed: false
+        effectivePomSkip: false
+        sonarQubeRunAnalysis: false
+
+- stage: SAST 
+  jobs:
+  - job: SAST
+    displayName:  'SAST'
+    steps:
+      - task: SonarCloudPrepare@1
+        inputs:
+          SonarCloud: 'sonarcloud'
+          organization: 'nearavenac-devops'
+          projectKey: 'nearavenac-devops_spring-boot-kubernetes'
+          projectName: 'spring-boot-kubernetes'
+        displayName: 'Preparing Sonarqube Environment'
+      - task: Maven@4
+        inputs:
+          mavenPomFile: 'pom.xml'
+          publishJUnitResults: true
+          testResultsFiles: '**/surefire-reports/TEST-*.xml'
+          javaHomeOption: 'JDKVersion'
+          mavenVersionOption: 'Default'
+          mavenAuthenticateFeed: false
+          effectivePomSkip: false
+          sonarQubeRunAnalysis: true
+          sqMavenPluginVersionChoice: 'latest'
+        displayName: 'Analyze current Branch'
+  - job: breaker
+    displayName: 'Breaker'
+    steps:
+      - task: sonarcloud-buildbreaker@2
+        inputs:
+          SonarCloud: 'sonarcloud'
+          organization: 'nearavenac-devops'
+        displayName: 'SonarCloud Breaker'
+
+- stage: SCA 
+  jobs:
+  - job: SCA
+    displayName: 'SCA'
+    steps:
+      - task: dependency-check-build-task@6
+        inputs:
+          projectName: 'spring-boot-kubernetes'
+          scanPath: '$(Build.SourcesDirectory)/target'
+          format: 'HTML'
+          failOnCVSS: '7'
+        displayName: 'Dependency Check'
+
+- stage: Container Security 
+  jobs:
+  - job: ContainerSecurity
+    displayName: 'Container Security'
+    steps:
+      - task: DockerInstaller@0
+        inputs:
+          dockerVersion: '17.09.0-ce'
+        displayName: 'Docker Install'
+      - task: Docker@2
+        inputs:
+          containerRegistry: 'Docker'
+          command: 'login'
+        displayName: 'Docker Registry Login'
+      - task: Docker@2
+        inputs:
+          containerRegistry: 'Docker'
+          repository: 'nearavenac/spring-boot-kubernetes'
+          command: 'build'
+          Dockerfile: '**/Dockerfile'
+          tags: 'latest'
+        displayName: 'Build Image'
+      - task: trivy@1
+        inputs:
+          version: 'latest'
+          image: 'nearavenac/spring-boot-kubernetes'
+          exitCode: '1'
+        displayName: 'Trivy Analisys'
+      - task: Docker@2
+        inputs:
+          containerRegistry: 'Docker'
+          repository: 'nearavenac/spring-boot-kubernetes'
+          command: 'push'
+          tags: 'latest'
+        displayName: 'Push Docker Image'
