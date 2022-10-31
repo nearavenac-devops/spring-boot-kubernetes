@@ -35,6 +35,8 @@ stages:
   jobs:
   - job: SAST
     displayName:  'SAST'
+    workspace:
+      clean: all
     steps:
       - task: SonarCloudPrepare@1
         inputs:
@@ -65,6 +67,8 @@ stages:
   jobs:
   - job: SCA
     displayName: 'SCA'
+    workspace:
+      clean: all
     steps:
       - task: dependency-check-build-task@6
         inputs:
